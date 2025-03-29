@@ -1,3 +1,4 @@
+// Using global object for immediate availability but also write to temp storage
 let tokens = {};
 
 export default async function handler(req, res) {
@@ -85,11 +86,10 @@ export default async function handler(req, res) {
     const redirectUri = process.env.REDIRECT_URI;
 
     // Check for required environment variables
-    if (!clientId || !clientSecret || !redirectUri) {
+    if (!clientId || !clientSecret) {
       console.error('Missing environment variables:', {
         hasClientId: !!clientId,
-        hasClientSecret: !!clientSecret,
-        hasRedirectUri: !!redirectUri
+        hasClientSecret: !!clientSecret
       });
       return res.status(500).send('❌ Server configuration error.');
     }
@@ -114,7 +114,13 @@ export default async function handler(req, res) {
 
     if (data.access_token) {
       console.log('Successfully received access token for session:', session);
+      
+      // Store tokens both in memory and in a query parameter
       tokens[session] = data;
+      
+      // Generate a direct link with token data embedded in query string
+      const tokenQueryString = encodeURIComponent(JSON.stringify(data));
+      const directTokenLink = `/api/store-token?session=${session}&token_data=${tokenQueryString}`;
       
       // Include a simple script to show the session ID for retrieval
       return res.send(`
@@ -125,14 +131,25 @@ export default async function handler(req, res) {
               body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
               .success { color: green; font-weight: bold; }
               .session { margin: 20px; padding: 10px; background: #f0f0f0; display: inline-block; }
+              .instructions { text-align: left; max-width: 600px; margin: 20px auto; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+              .button { display: inline-block; background: #9147ff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin: 10px; }
             </style>
           </head>
           <body>
             <h1 class="success">✅ Twitch login successful!</h1>
-            <p>Your session ID is:</p>
-            <div class="session">${session}</div>
-            <p>You'll need this ID to retrieve your tokens.</p>
-            <p>You can now close this tab.</p>
+            
+            <div class="instructions">
+              <p><strong>Important:</strong> To ensure your tokens are saved properly, please click the button below:</p>
+              <p><a href="${directTokenLink}" class="button">Save My Tokens</a></p>
+              <p>After saving, you can retrieve your tokens using your session ID:</p>
+              <div class="session">${session}</div>
+              <p>To get your tokens, visit:</p>
+              <div class="session">
+                <a href="/api/get-token?session=${session}" target="_blank">
+                  /api/get-token?session=${session}
+                </a>
+              </div>
+            </div>
           </body>
         </html>
       `);

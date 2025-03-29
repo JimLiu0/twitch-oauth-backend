@@ -1,4 +1,4 @@
-import { tokens } from './callback.js';
+import { tokens } from './token-storage.js';
 
 export default function handler(req, res) {
   try {
@@ -33,7 +33,8 @@ export default function handler(req, res) {
       console.log('No tokens found for session:', session);
       return res.status(404).json({ 
         success: false,
-        error: 'No tokens found for this session' 
+        error: 'No tokens found for this session',
+        note: 'Did you click the "Save My Tokens" button after authenticating?'
       });
     }
   } catch (error) {
