@@ -162,6 +162,11 @@ export default function handler(req, res) {
               html += '<td style="padding:8px; border-bottom:1px solid #ddd;"><code>' + data.refresh_token + '</code></td></tr>';
             }
             
+            if (data.client_id) {
+              html += '<tr><td style="padding:8px; border-bottom:1px solid #ddd;"><strong>Client ID</strong></td>';
+              html += '<td style="padding:8px; border-bottom:1px solid #ddd;"><code>' + data.client_id + '</code></td></tr>';
+            }
+            
             if (data.expires_in) {
               html += '<tr><td style="padding:8px; border-bottom:1px solid #ddd;"><strong>Expires In</strong></td>';
               html += '<td style="padding:8px; border-bottom:1px solid #ddd;">' + data.expires_in + ' seconds (approximately ' + expiryDate + ')</td></tr>';
@@ -178,6 +183,32 @@ export default function handler(req, res) {
             }
             
             html += '</table>';
+            
+            // Add API links section
+            html += '<h3 style="margin-top:20px;">API Endpoints for Integration</h3>';
+            html += '<p>Use these endpoints in your application to retrieve token data programmatically:</p>';
+            
+            // Only show these links if we have a session ID
+            if (document.getElementById('session-id').value.trim()) {
+              const baseUrl = window.location.origin;
+              
+              html += '<table style="width:100%; border-collapse: collapse;">';
+              html += '<tr><th style="text-align:left; padding:8px; border-bottom:1px solid #ddd;">Format</th><th style="text-align:left; padding:8px; border-bottom:1px solid #ddd;">URL</th><th style="text-align:left; padding:8px; border-bottom:1px solid #ddd;">Description</th></tr>';
+              
+              html += '<tr><td style="padding:8px; border-bottom:1px solid #ddd;"><strong>Full</strong></td>';
+              html += '<td style="padding:8px; border-bottom:1px solid #ddd;"><a href="' + baseUrl + '/api/plugin-token?session=' + document.getElementById('session-id').value.trim() + '" target="_blank">' + baseUrl + '/api/plugin-token?session=' + document.getElementById('session-id').value.trim() + '</a></td>';
+              html += '<td style="padding:8px; border-bottom:1px solid #ddd;">Complete token data with all fields</td></tr>';
+              
+              html += '<tr><td style="padding:8px; border-bottom:1px solid #ddd;"><strong>Minimal</strong></td>';
+              html += '<td style="padding:8px; border-bottom:1px solid #ddd;"><a href="' + baseUrl + '/api/plugin-token?session=' + document.getElementById('session-id').value.trim() + '&format=minimal" target="_blank">' + baseUrl + '/api/plugin-token?session=' + document.getElementById('session-id').value.trim() + '&format=minimal</a></td>';
+              html += '<td style="padding:8px; border-bottom:1px solid #ddd;">Just access_token, refresh_token, and client_id</td></tr>';
+              
+              html += '<tr><td style="padding:8px; border-bottom:1px solid #ddd;"><strong>Raw</strong></td>';
+              html += '<td style="padding:8px; border-bottom:1px solid #ddd;"><a href="' + baseUrl + '/api/plugin-token?session=' + document.getElementById('session-id').value.trim() + '&format=raw" target="_blank">' + baseUrl + '/api/plugin-token?session=' + document.getElementById('session-id').value.trim() + '&format=raw</a></td>';
+              html += '<td style="padding:8px; border-bottom:1px solid #ddd;">Only access_token and client_id</td></tr>';
+              
+              html += '</table>';
+            }
             
             document.getElementById('token-details').innerHTML = html;
           }
