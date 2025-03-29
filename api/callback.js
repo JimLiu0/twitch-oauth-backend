@@ -66,10 +66,16 @@ export default async function handler(req, res) {
     }
     
     const { code, state } = req.query;
+    console.log('State parameter received:', state);
+    console.log('State type:', typeof state);
+
     // Check if this is an auto-redirect request (starts with "auto_")
-    const isAutoRedirect = state && state.startsWith('auto_');
+    const isAutoRedirect = state && typeof state === 'string' && state.startsWith('auto_');
+    console.log('Is auto-redirect detected:', isAutoRedirect);
+
     // Extract the actual session ID, removing the "auto_" prefix if present
     const session = isAutoRedirect ? state.substring(5) : state; // Twitch returns our session as 'state'
+    console.log('Extracted session:', session);
     
     // More detailed check for each parameter
     if (!code) {
