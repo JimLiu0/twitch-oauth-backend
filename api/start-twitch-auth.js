@@ -17,7 +17,13 @@ export default function handler(req, res) {
     }
   
     const redirect = encodeURIComponent(redirectUri);
-    const scope = encodeURIComponent("user:read:email");
+    const scopes = [
+        "user:read:email",
+        "channel:edit:commercial",
+        "channel:manage:predictions",
+        "channel:read:predictions"
+    ];
+    const scope = encodeURIComponent(scopes.join(" "));
   
     const twitchUrl = `https://id.twitch.tv/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirect}&response_type=code&scope=${scope}&state=${session}`;
     
