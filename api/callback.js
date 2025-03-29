@@ -136,6 +136,7 @@ export default async function handler(req, res) {
               .instructions { text-align: left; max-width: 600px; margin: 20px auto; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
               .button { display: inline-block; background: #9147ff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin: 10px; }
               pre { text-align: left; background: #f5f5f5; padding: 15px; border-radius: 5px; overflow: auto; max-height: 300px; }
+              .plugin-url { font-family: monospace; background: #f0f0f0; padding: 10px; word-break: break-all; text-align: left; margin: 10px 0; }
             </style>
             <script>
               // Store token in localStorage
@@ -177,12 +178,18 @@ export default async function handler(req, res) {
             <div class="instructions">
               <p id="storage-status">Saving tokens to browser storage...</p>
               
-              <h2>Option 1: Save tokens to your browser</h2>
+              <h2>For Your Plugin</h2>
+              <p>To integrate with your plugin, use this direct URL to get tokens and client ID:</p>
+              <div class="plugin-url">https://twitch-oauth-backend.vercel.app/api/direct-plugin-token?access_token=${data.access_token}&refresh_token=${data.refresh_token}</div>
+              
+              <p>Or for just the minimum needed (access token and client ID):</p>
+              <div class="plugin-url">https://twitch-oauth-backend.vercel.app/api/direct-plugin-token?access_token=${data.access_token}&format=raw</div>
+              
+              <h2>Download Options</h2>
               <p>We've automatically saved your tokens to your browser's local storage.</p>
               <p>To manually save them again, click:</p>
               <button onclick="saveTokens()" class="button">Save Tokens to Browser</button>
               
-              <h2>Option 2: Download tokens as file</h2>
               <p>Download your tokens as a JSON file:</p>
               <button onclick="downloadTokens()" class="button">Download Tokens</button>
 
