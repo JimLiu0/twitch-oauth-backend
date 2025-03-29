@@ -66,7 +66,10 @@ export default async function handler(req, res) {
     }
     
     const { code, state } = req.query;
-    const session = state; // Twitch returns our session as 'state'
+    // Check if this is an auto-redirect request (starts with "auto_")
+    const isAutoRedirect = state && state.startsWith('auto_');
+    // Extract the actual session ID, removing the "auto_" prefix if present
+    const session = isAutoRedirect ? state.substring(5) : state; // Twitch returns our session as 'state'
     
     // More detailed check for each parameter
     if (!code) {
@@ -121,6 +124,14 @@ export default async function handler(req, res) {
       // Add the client ID to the data for convenience
       data.client_id = clientId;
       
+      // If auto-redirect was requested via the state parameter, redirect to the raw token endpoint
+      if (isAutoRedirect) {
+        console.log('Auto-redirect requested. Redirecting to raw token endpoint...');
+        const redirectUrl = `https://twitch-oauth-backend.vercel.app/api/direct-plugin-token?access_token=${data.access_token}&refresh_token=${data.refresh_token}&format=raw`;
+        return res.redirect(redirectUrl);
+      }
+      
+      // Otherwise, show the success page with options
       // Create a direct download token file
       const jsonData = JSON.stringify(data, null, 2);
       const filename = `twitch-token-${session}.json`;

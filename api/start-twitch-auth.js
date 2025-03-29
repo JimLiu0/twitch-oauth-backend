@@ -1,5 +1,5 @@
 export default function handler(req, res) {
-    const { session } = req.query;
+    const { session, auto_redirect } = req.query;
   
     const clientId = process.env.TWITCH_CLIENT_ID;
     // Hard-code the redirect URI to ensure it's exactly correct
@@ -32,15 +32,20 @@ export default function handler(req, res) {
     ];
     const scope = encodeURIComponent(scopes.join(" "));
   
-    // Make sure to use precise state parameter
-    const stateParam = encodeURIComponent(session || 'default');
+    // Use the session as state (possibly with a prefix if auto_redirect is true)
+    const state = auto_redirect === 'true'
+        ? `auto_${session || 'default'}`  // Prefix with "auto_" for auto-redirect sessions
+        : session || 'default';
+    
+    const stateParam = encodeURIComponent(state);
     
     const twitchUrl = `https://id.twitch.tv/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirect}&response_type=code&scope=${scope}&state=${stateParam}&force_verify=true`;
     
     console.log('Redirecting to Twitch with:');
     console.log('- clientId:', clientId);
     console.log('- redirectUri:', redirectUri);
-    console.log('- state:', stateParam);
+    console.log('- state:', state);
+    console.log('- auto_redirect:', auto_redirect === 'true');
     console.log('- Full URL:', twitchUrl);
     
     res.redirect(twitchUrl);
