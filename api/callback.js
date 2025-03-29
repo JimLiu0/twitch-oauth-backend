@@ -2,11 +2,21 @@ let tokens = {};
 
 export default async function handler(req, res) {
   try {
-    const { code, state: session } = req.query;
+    // Add logging to see what parameters are being received
+    console.log('Callback received query params:', JSON.stringify(req.query));
     
-    if (!code || !session) {
-      console.error('Missing required parameters:', { hasCode: !!code, hasSession: !!session });
-      return res.status(400).send('❌ Missing required parameters. Please try again.');
+    const { code, state } = req.query;
+    const session = state; // Twitch returns our session as 'state'
+    
+    // More detailed check for each parameter
+    if (!code) {
+      console.error('Missing code parameter');
+      return res.status(400).send('❌ Missing code parameter from Twitch. Please try again.');
+    }
+    
+    if (!state) {
+      console.error('Missing state parameter');
+      return res.status(400).send('❌ Missing state parameter from Twitch. Please try again.');
     }
 
     console.log('Received code from Twitch with session:', session);
@@ -100,6 +110,7 @@ export default async function handler(req, res) {
         <body>
           <h1 class="error">❌ Server Error</h1>
           <p>Something went wrong. Please try again later.</p>
+          <p>Error: ${error.message || 'Unknown error'}</p>
         </body>
       </html>
     `);
