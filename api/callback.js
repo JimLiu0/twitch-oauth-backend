@@ -118,6 +118,9 @@ export default async function handler(req, res) {
       // Store tokens in memory (temporary)
       tokens[session] = data;
       
+      // Add the client ID to the data for convenience
+      data.client_id = clientId;
+      
       // Create a direct download token file
       const jsonData = JSON.stringify(data, null, 2);
       const filename = `twitch-token-${session}.json`;
