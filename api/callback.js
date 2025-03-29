@@ -5,6 +5,65 @@ export default async function handler(req, res) {
     // Add logging to see what parameters are being received
     console.log('Callback received query params:', JSON.stringify(req.query));
     
+    // Check for Twitch error parameters
+    if (req.query.error) {
+      console.error('Twitch returned an error:', req.query.error, req.query.error_description);
+      
+      // Handle redirect_mismatch error specifically
+      if (req.query.error === 'redirect_mismatch') {
+        return res.status(400).send(`
+          <html>
+            <head>
+              <title>Redirect URI Mismatch</title>
+              <style>
+                body { font-family: Arial, sans-serif; text-align: center; margin: 50px; }
+                .error { color: red; font-weight: bold; }
+                .code { background: #f0f0f0; padding: 10px; margin: 20px; display: inline-block; }
+                .instructions { text-align: left; max-width: 600px; margin: 0 auto; }
+              </style>
+            </head>
+            <body>
+              <h1 class="error">❌ Redirect URI Mismatch</h1>
+              <p>Your Twitch app's registered redirect URI doesn't match the one you're using.</p>
+              
+              <div class="instructions">
+                <h2>How to fix this:</h2>
+                <ol>
+                  <li>Go to the <a href="https://dev.twitch.tv/console/apps" target="_blank">Twitch Developer Console</a></li>
+                  <li>Find your application and click "Manage"</li>
+                  <li>Under "OAuth Redirect URLs", add the following URL <strong>exactly</strong>:</li>
+                  <div class="code">https://twitch-oauth-backend.vercel.app/api/callback</div>
+                  <li>Click "Save" at the bottom of the page</li>
+                  <li><a href="/api/start-twitch-auth?session=test123">Try the authentication again</a></li>
+                </ol>
+                
+                <p>Error Details: ${req.query.error_description}</p>
+              </div>
+            </body>
+          </html>
+        `);
+      }
+      
+      // Handle other errors
+      return res.status(400).send(`
+        <html>
+          <head>
+            <title>Twitch Authentication Error</title>
+            <style>
+              body { font-family: Arial, sans-serif; text-align: center; margin: 50px; }
+              .error { color: red; font-weight: bold; }
+            </style>
+          </head>
+          <body>
+            <h1 class="error">❌ Authentication Error</h1>
+            <p>Twitch returned an error: ${req.query.error}</p>
+            <p>Error Description: ${req.query.error_description || 'No description provided'}</p>
+            <p><a href="/api/start-twitch-auth?session=test123">Try again</a></p>
+          </body>
+        </html>
+      `);
+    }
+    
     const { code, state } = req.query;
     const session = state; // Twitch returns our session as 'state'
     
@@ -40,7 +99,7 @@ export default async function handler(req, res) {
       client_secret: clientSecret,
       code,
       grant_type: 'authorization_code',
-      redirect_uri: redirectUri,
+      redirect_uri: "https://twitch-oauth-backend.vercel.app/api/callback",
     });
 
     console.log('Exchanging code for token...');

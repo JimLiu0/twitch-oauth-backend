@@ -2,13 +2,17 @@ export default function handler(req, res) {
     const { session } = req.query;
   
     const clientId = process.env.TWITCH_CLIENT_ID;
-    const redirectUri = process.env.REDIRECT_URI;
+    // Hard-code the redirect URI to ensure it's exactly correct
+    const redirectUri = "https://twitch-oauth-backend.vercel.app/api/callback";
+
+    // Log the exact value we're using
+    console.log('=== REDIRECT URI DEBUG ===');
+    console.log('Using hard-coded redirectUri:', redirectUri);
 
     // Check if required environment variables are set
-    if (!clientId || !redirectUri) {
+    if (!clientId) {
         console.error('Missing environment variables:', {
-            hasClientId: !!clientId,
-            hasRedirectUri: !!redirectUri
+            hasClientId: !!clientId
         });
         return res.status(500).json({ 
             error: 'Server configuration error',
@@ -17,6 +21,9 @@ export default function handler(req, res) {
     }
   
     const redirect = encodeURIComponent(redirectUri);
+    console.log('After encodeURIComponent:', redirect);
+    console.log('=== END REDIRECT URI DEBUG ===');
+
     const scopes = [
         "user:read:email",
         "channel:edit:commercial",
@@ -34,6 +41,7 @@ export default function handler(req, res) {
     console.log('- clientId:', clientId);
     console.log('- redirectUri:', redirectUri);
     console.log('- state:', stateParam);
+    console.log('- Full URL:', twitchUrl);
     
     res.redirect(twitchUrl);
 }
