@@ -25,7 +25,7 @@ export default function handler(req, res) {
     ];
     const scope = encodeURIComponent(scopes.join(" "));
   
-    const twitchUrl = `https://id.twitch.tv/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirect}&response_type=code&scope=${scope}&state=${session}`;
+    const twitchUrl = `https://id.twitch.tv/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirect}&response_type=code&scope=${scope}&state=${session}&force_verify=true`;
     
     console.log('Redirecting to:', twitchUrl);
     res.redirect(twitchUrl);
