@@ -115,14 +115,13 @@ export default async function handler(req, res) {
     if (data.access_token) {
       console.log('Successfully received access token for session:', session);
       
-      // Store tokens both in memory and in a query parameter
+      // Store tokens in memory (temporary)
       tokens[session] = data;
       
-      // Generate a direct link with token data embedded in query string
-      const tokenQueryString = encodeURIComponent(JSON.stringify(data));
-      const directTokenLink = `/api/store-token?session=${session}&token_data=${tokenQueryString}`;
+      // Create a direct download token file
+      const jsonData = JSON.stringify(data, null, 2);
+      const filename = `twitch-token-${session}.json`;
       
-      // Include a simple script to show the session ID for retrieval
       return res.send(`
         <html>
           <head>
@@ -133,22 +132,63 @@ export default async function handler(req, res) {
               .session { margin: 20px; padding: 10px; background: #f0f0f0; display: inline-block; }
               .instructions { text-align: left; max-width: 600px; margin: 20px auto; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
               .button { display: inline-block; background: #9147ff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin: 10px; }
+              pre { text-align: left; background: #f5f5f5; padding: 15px; border-radius: 5px; overflow: auto; max-height: 300px; }
             </style>
+            <script>
+              // Store token in localStorage
+              function saveTokens() {
+                try {
+                  const tokenData = ${JSON.stringify(data)};
+                  localStorage.setItem('twitch_tokens_${session}', JSON.stringify(tokenData));
+                  document.getElementById('storage-status').innerHTML = '✅ Tokens saved to your browser storage!';
+                  return true;
+                } catch(e) {
+                  console.error('Error saving tokens:', e);
+                  document.getElementById('storage-status').innerHTML = '❌ Error saving tokens: ' + e.message;
+                  return false;
+                }
+              }
+              
+              // Create file download
+              function downloadTokens() {
+                const tokenData = ${JSON.stringify(data)};
+                const dataStr = JSON.stringify(tokenData, null, 2);
+                const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+                
+                const linkElement = document.createElement('a');
+                linkElement.setAttribute('href', dataUri);
+                linkElement.setAttribute('download', '${filename}');
+                linkElement.click();
+              }
+              
+              // Run on page load
+              window.onload = function() {
+                // Try to auto-save
+                saveTokens();
+              };
+            </script>
           </head>
           <body>
             <h1 class="success">✅ Twitch login successful!</h1>
             
             <div class="instructions">
-              <p><strong>Important:</strong> To ensure your tokens are saved properly, please click the button below:</p>
-              <p><a href="${directTokenLink}" class="button">Save My Tokens</a></p>
-              <p>After saving, you can retrieve your tokens using your session ID:</p>
+              <p id="storage-status">Saving tokens to browser storage...</p>
+              
+              <h2>Option 1: Save tokens to your browser</h2>
+              <p>We've automatically saved your tokens to your browser's local storage.</p>
+              <p>To manually save them again, click:</p>
+              <button onclick="saveTokens()" class="button">Save Tokens to Browser</button>
+              
+              <h2>Option 2: Download tokens as file</h2>
+              <p>Download your tokens as a JSON file:</p>
+              <button onclick="downloadTokens()" class="button">Download Tokens</button>
+
+              <h2>Your Session ID</h2>
+              <p>For future reference, your session ID is:</p>
               <div class="session">${session}</div>
-              <p>To get your tokens, visit:</p>
-              <div class="session">
-                <a href="/api/get-token?session=${session}" target="_blank">
-                  /api/get-token?session=${session}
-                </a>
-              </div>
+              
+              <h2>Token Information</h2>
+              <pre>${JSON.stringify(data, null, 2)}</pre>
             </div>
           </body>
         </html>
